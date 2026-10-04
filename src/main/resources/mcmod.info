@@ -1,0 +1,11 @@
+[
+  {
+    "modid": "aw2npcvisfix",
+    "name": "AW2 NPC Vis Fix",
+    "description": "Diagnoses and force-fixes Ancient Warfare 2 faction NPCs rendering invisible (body gone, hitbox + nametag remain) in the DogPound 3 Cleanroom modpack. Mixes into AW2 RenderNpcBase#doRender: logs render state (texture, isInvisible, doRender-ran marker) tagged [AW2VisFix] and resets GL state + temporarily clears the invisible flag so NPC bodies draw cleanly. Only AW2 NpcBase entities are affected.",
+    "version": "1.0.0",
+    "mcversion": "1.12.2",
+    "authorList": ["crunkazcanbe"],
+    "clientSideOnly": true
+  }
+]

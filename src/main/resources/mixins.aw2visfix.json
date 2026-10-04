@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.dogpound.aw2visfix.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "mixins.aw2visfix.refmap.json",
+  "client": [
+    "RenderLivingBaseMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

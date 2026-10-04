@@ -1,0 +1,75 @@
+/**
+ * AW2NpcVisFix — RetroFuturaGradle (CleanroomMC / 1.12.2, Mixin via MixinBooter).
+ *
+ * Diagnoses + force-fixes Ancient Warfare 2 faction NPCs rendering INVISIBLE in the
+ * full DogPound 3 Cleanroom modpack (body gone, hitbox + nametag remain). A Mixin into
+ * AW2's RenderNpcBase#doRender HEAD logs the render state (class, isInvisible, texture +
+ * whether it resolves, "doRender ran" marker) and resets GL state + temporarily clears
+ * the invisible flag, so AW2 NPC bodies draw with a clean state regardless of what other
+ * coremod left the GL / entity state in. Only AW2 NpcBase entities are touched.
+ *
+ * Same proven toolchain as DogPoundInvTweaks (RFG 2.0.2 + JDK8 + MixinBooter), which is
+ * confirmed loading in her Cleanroom pack.
+ */
+plugins {
+    id 'java'
+    id 'com.gtnewhorizons.retrofuturagradle' version '2.0.2'
+}
+
+version = '1.0.0'
+group = 'com.dogpound.aw2visfix'
+base { archivesName.set('AW2NpcVisFix-1.12.2') }
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+        vendor.set(JvmVendorSpec.AZUL)
+    }
+}
+
+minecraft {
+    mcVersion.set('1.12.2')
+    mcpMappingChannel.set('stable')
+    mcpMappingVersion.set('39')
+    extraRunJvmArguments.addAll(['-Dmixin.hotSwap=true', '-Dmixin.debug.export=true'])
+}
+
+repositories {
+    mavenCentral()
+    maven { name 'CleanroomMC Maven'; url 'https://maven.cleanroommc.com' }
+    maven { name 'GTNH Maven'; url 'https://nexus.gtnewhorizons.com/repository/public/' }
+    flatDir { dirs 'libs' }
+}
+
+dependencies {
+    String mixin = modUtils.enableMixins('zone.rong:mixinbooter:10.2', 'mixins.aw2visfix.refmap.json')
+    api(mixin) { transitive = false }
+    annotationProcessor 'org.ow2.asm:asm-debug-all:5.2'
+    annotationProcessor 'com.google.guava:guava:32.1.2-jre'
+    annotationProcessor 'com.google.code.gson:gson:2.8.9'
+    annotationProcessor(mixin) { transitive = false }
+
+    // Ancient Warfare 2 — compile-only so we can reference RenderNpcBase / NpcBase types.
+    compileOnly files('libs/aw2.jar')
+}
+
+jar {
+    manifest {
+        attributes([
+            'Specification-Title'           : 'AW2NpcVisFix',
+            'Specification-Version'         : '1',
+            'Implementation-Title'          : project.name,
+            'Implementation-Version'        : "${version}",
+            // Pure coremod: AW2VisFixCore implements MixinBooter's IEarlyMixinLoader and
+            // returns mixins.aw2visfix.json from getMixinConfigs(). MixinBooter gathers the
+            // config from there at the correct early phase; the @Inject binds lazily when
+            // AW2's RenderNpcBase is classloaded (first NPC render). FMLCorePluginContainsFMLMod
+            // is false (no @Mod in this jar) — the proven recipe on 1.12.2.
+            'FMLCorePlugin'                 : 'com.dogpound.aw2visfix.AW2VisFixCore',
+            'FMLCorePluginContainsFMLMod'   : 'false',
+            'ForceLoadAsMod'                : 'false',
+            // Harmless extra for loaders that also read it (MixinBooter ignores it).
+            'MixinConfigs'                  : 'mixins.aw2visfix.json'
+        ])
+    }
+}
